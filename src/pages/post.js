@@ -1,12 +1,17 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { Redirect } from "react-router-dom";
 import { getFirebase } from "../firebase";
+import ReactMarkdown from 'react-markdown'
+import hljs from 'highlight.js';
+import 'highlight.js/styles/monokai-sublime.css';
 
 const Post = ({ match }) => {
   const slug = match.params.slug;
   const [loading, setLoading] = useState(true);
   const [currentPost, setCurrentPost] = useState();
   
+  useEffect(() => { hljs.highlightAll(); })
+
   console.log('Hello');
 
   if (loading && !currentPost) {
@@ -36,10 +41,12 @@ const Post = ({ match }) => {
 
   return (
     <>
-      <img src={currentPost.coverImage} alt={currentPost.coverImageAlt} />
+      <div className="img-container">
+        <img className='img-post' src={currentPost.coverImage} alt={currentPost.coverImageAlt} />
+      </div>
       <h1>{currentPost.title}</h1>
       <em>{currentPost.datePretty}</em>
-      <p dangerouslySetInnerHTML={{ __html: currentPost.content }}></p>
+      <ReactMarkdown source={currentPost.content} />
     </>
   );
 };

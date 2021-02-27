@@ -16,19 +16,46 @@ nav a h2 {
   margin: 0;
 }
 
+nav a p{
+  color: #ffffff;
+  float: right;
+}
+
 main {
-  max-width: 700px;
+  padding-top: 0px;
+  max-width: 1000px;
   margin: 0 auto;
 }
 
+main .img-container{
+  width: 100vw;
+  margin-left: calc(-50vw + 50%);
+  height: 240px;
+  overflow: hidden;
+}
+
+main .img-post{
+  width: 100%;
+  background-position: center;
+  margin-top: calc(120px - 50vh);
+}
+
+main img:not(.img-post){
+  max-width: 100%;
+  
+}
+
 .card {
-  border: 1px solid grey;
+  border: 1px solid rgb(202, 202, 202);
   border-radius: 4px;
   margin-top: 24px;
+  display: flex;
+  flex-direction: row;
 }
 
 .card img {
-  width: 100%;
+  width: 40%;
+  height: auto;
 }
 
 .card-content {
@@ -38,4 +65,72 @@ main {
 .card-content a {
   display: inline-block;
   margin-top: 12px;
+}
+
+p{
+  margin-bottom: 10px;
+}
+
+.pagination{
+  display: flex;
+  justify-content: center;
+  flex-direction: row;
+  list-style: none;
+  margin: 50px;
+}
+
+.pagination li{
+  display: grid;
+  align-items: center;
+  text-align: center;
+  border: 1px solid rgb(156, 156, 156);
+  width: 45px;
+  height: 45px;
+  background-color: #ffffff;
+}
+
+.pagination .active{
+  background-color: #0683c2;
+  border: none;
+}
+
+.pagination .active > a{
+  color: #ffffff;
+}
+
+.pagination li a{
+  font-weight: bold;
+  color: #0871a5;
+  text-decoration: none;
+}
+
+i{
+  width: 100%;
+  height: 100%;
+  color: black;
+}
+
+/* On screens that are 760px or less, set the background color to olive */
+@media screen and (max-width: 760px) {
+  main .img-post{
+    margin-top: 0;
+  }
+  
+  .card {
+    display: block;
+  }
+  
+  .card img {
+    width: 100%;
+    height: auto;
+  }
+  
+  .card-content {
+    padding: 16px;
+  }
+  
+  .card-content a {
+    display: inline-block;
+    margin-top: 12px;
+  }
 }

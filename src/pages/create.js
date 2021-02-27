@@ -1,5 +1,13 @@
-import React, { useState } from "react";
+import React, { useState, useRef } from "react";
 import { getFirebase } from "../firebase";
+import md from './md';
+import { useDropzone } from 'react-dropzone';
+import FileReader from 'promise-file-reader';
+import 'semantic-ui-css/semantic.min.css'
+import { Icon } from 'semantic-ui-react';
+import getConfig from './config';
+import 'react-textarea-markdown-editor/build/TextareaMarkdownEditor.css';
+import TextareaMarkdownEditor from 'react-textarea-markdown-editor';
 
 const labelStyles = {
   display: "block",
@@ -18,10 +26,80 @@ const inputStyles = {
 
 const Create = ({ history }) => {
   const [title, setTitle] = useState("");
-  const [slug, setSlug] = useState("");
   const [coverImage, setCoverImage] = useState("");
   const [coverImageAlt, setCoverImageAlt] = useState("");
   const [content, setContent] = useState("");
+  const [images, setImages] = useState([]);
+  const editorRef = useRef(null);
+  const { getRootProps, getInputProps, open, isDragActive } = useDropzone({
+    // Disable click and keydown behavior
+    noClick: true,
+    noKeyboard: true,
+    multiple: false,
+    accept: 'image/jpeg, image/png',
+    onDropAccepted: async (files) => {
+      const data = await FileReader.readAsDataURL(files[0]);
+      editorRef.current.mark('![', `][image${images.length + 1}]`, 'alt text');
+      setImages([...images, data]);
+    },
+  });
+
+  const markers = [
+    ...getConfig('en'),
+    {
+      key: 'images',
+      markers: [
+        {
+          key: 'images',
+          markers: [
+            {
+              key: 'open',
+              name: <Icon name="image" fitted size="large" onClick={open}/>,
+              title: 'Open file',
+              type: 'component',
+            },
+            ...images.map((data, index) => ({
+              defaultText: 'alt text',
+              key: `image${index + 1}`,
+              name: `image${index + 1}`,
+              prefix: '![',
+              suffix: `][image${index + 1}]`,
+              title: `image${index + 1}`,
+              type: 'marker',
+            })),
+          ],
+          type: 'dropdown',
+        },
+      ],
+    },
+  ];
+
+  async function onPaste (e) {
+    if (!e.clipboardData) {
+      return;
+    }
+    const items = e.clipboardData.items;
+    if (!items) {
+      return;
+    }
+    for (let i = 0; i < items.length; i++) {
+      // Skip content if not image
+      if (items[i].type.indexOf('image') === -1) continue;
+      // Retrieve image on clipboard as blob
+      const file = items[i].getAsFile();
+      console.log(items[i]);
+      if (file) {
+        e.preventDefault();
+        e.stopPropagation();
+        // File name
+        console.log(e.clipboardData.getData('Text'));
+        const data = await FileReader.readAsDataURL(file);
+        console.log(data);
+        editorRef.current.mark('![', `][image${images.length + 1}]`, 'alt text');
+        setImages([...images, data]);
+      }
+    }
+  }
 
   const generateDate = () => {
     const now = new Date();
@@ -45,8 +123,19 @@ const Create = ({ history }) => {
     };
   };
 
+  const generateSlug = (title) => {
+    return title.split(" ")
+                .join("-")
+                .toLowerCase()
+                .normalize('NFD')
+                .replace(/[\u0300-\u036f]/g, '')
+                .replace(/đ/g, 'd')
+                .replace(/Đ/g, 'D');
+  }
+
   const createPost = () => {
     const date = generateDate();
+    const slug = generateSlug(title);
     const newPost = {
       title,
       dateFormatted: date.formatted,
@@ -81,19 +170,6 @@ const Create = ({ history }) => {
           }}
         />
 
-        <label style={labelStyles} htmlFor="slug-field">
-          Slug
-        </label>
-        <input
-          style={inputStyles}
-          id="slug-field"
-          type="text"
-          value={slug}
-          onChange={({ target: { value } }) => {
-            setSlug(value);
-          }}
-        />
-
         <label style={labelStyles} htmlFor="cover-image-field">
           Cover image
         </label>
@@ -123,15 +199,19 @@ const Create = ({ history }) => {
         <label style={labelStyles} htmlFor="content-field">
           Content
         </label>
-        <textarea
-          style={{ ...inputStyles, height: 200, verticalAlign: "top" }}
-          id="content"
-          type="text"
+  
+        <TextareaMarkdownEditor 
+          id='content'
           value={content}
-          onChange={({ target: { value } }) => {
-            setContent(value);
-          }}
+          onChange={(value) => setContent(value)}
+          doParse={text => md.render(`${text}\n\n${images.map((data, index) => `[image${index + 1}]: ${data}`).join('\n\n')}`)}
+          ref={editorRef} 
+          markers={markers}
+          rows={10}
+          placeholder="You can paste or drag your image here!"
+          onPaste={onPaste}
         />
+
         <div style={{ textAlign: "right" }}>
           <button
             style={{

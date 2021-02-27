@@ -14,6 +14,9 @@ function App() {
         <Link to="/">
           <h2>Alex's Blog</h2>
         </Link>
+        <Link to="/create">
+          <p>Create a new blog</p>
+        </Link>
       </nav>
       <main>
         <Switch>

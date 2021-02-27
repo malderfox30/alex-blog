@@ -1,10 +1,13 @@
 import React, { useState } from "react";
 import { Link } from "react-router-dom";
 import { getFirebase } from "../firebase";
+import Pagination from "react-js-pagination";
 
 const Home = () => {
   const [loading, setLoading] = useState(true);
   const [blogPosts, setBlogPosts] = useState([]);
+  const [currentPage, setCurrentPage] = useState(1);
+  const articlesPerPage = 2;
 
   if (loading && !blogPosts.length) {
     getFirebase()
@@ -18,12 +21,21 @@ const Home = () => {
         for (let slug in snapshotVal) {
           posts.push(snapshotVal[slug]);
         }
-
         const newestFirst = posts.reverse();
         setBlogPosts(newestFirst);
         setLoading(false);
       });
   }
+
+  var indexOfLastArticle = currentPage * articlesPerPage;
+  var indexOfFirstArticle = indexOfLastArticle - articlesPerPage;
+  var currentArticles = blogPosts.slice(indexOfFirstArticle, indexOfLastArticle);
+
+  // // Logic for displaying page numbers
+  // const pageNumbers = [];
+  // for (let i = 1; i <= Math.ceil(blogPosts.length / articlesPerPage); i++) {
+  //   pageNumbers.push(i);
+  // }
 
   if (loading) {
     return <h1>Loading...</h1>;
@@ -32,7 +44,8 @@ const Home = () => {
   return (
     <>
       <h1>Blog posts</h1>
-      {blogPosts.map(blogPost => (
+      { 
+        currentArticles.map(blogPost => (
         <section key={blogPost.slug} className="card">
           <img src={blogPost.coverImage} alt={blogPost.coverImageAlt} />
           <div className="card-content">
@@ -49,6 +62,28 @@ const Home = () => {
           </div>
         </section>
       ))}
+      {/* <ul id="page-numbers">
+          {
+            pageNumbers.map(number => {
+              return (
+                <li
+                  key={number}
+                  id={number}
+                  onClick={() => setCurrentPage(number)}
+                >
+                  {number}
+                </li>
+              );
+            })
+          }
+      </ul> */}
+      <Pagination
+        activePage={currentPage}
+        itemsCountPerPage={articlesPerPage}
+        totalItemsCount={blogPosts.length}
+        pageRangeDisplayed={5}
+        onChange={(pageNumber) => setCurrentPage(pageNumber)}
+      />
     </>
   );
 };
